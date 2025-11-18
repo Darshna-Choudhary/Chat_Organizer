@@ -46,4 +46,4 @@ This project is currently unlicensed. You are welcome to use and modify the code
 
 ## Contact
 
-Created by [Darshna-Choudhary](https://github.com/Darshna-Choudhary).
+Created by [Darshna-Choudhary](https://github.com/Darshna-Choudhary), [Aditya-Sharma](https://github.com/AdityaSharma2457)
