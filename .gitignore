@@ -1,0 +1,47 @@
+# Python / Backend
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+env/
+uploads/
+storage/
+*.db
+*.sqlite3
+*.log
+
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+
+# OS + editor junk
+.DS_Store
+.vscode/
+.idea/
+
+
+backend/__pycache__/
+backend/venv/
+backend/.venv/
+backend/env/
+backend/uploads/
+backend/storage/anode_modules/
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+env/
+uploads/
+storage/
+*.db
+*.sqlite3
+*.log
+dist/
+dist-ssr/
+
+*.db
+*.sqlite3
+*.log
