@@ -1,0 +1,84 @@
+/* Minimal styles for upload component */
+.upload-container {
+  max-width: 520px;
+  margin: 18px auto;
+  padding: 12px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  background: #fff;
+  font-family: Arial, sans-serif;
+}
+
+.upload-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.file-input {
+  display: block;
+}
+
+.upload-label {
+  cursor: pointer;
+  color: #333;
+}
+
+.progress-container {
+  width: 100%;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #2e7d32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  transition: width 0.2s ease;
+}
+
+.alert {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alert-success {
+  background: #e6f4ea;
+  color: #1b5e20;
+  border: 1px solid #c8e6c9;
+}
+
+.alert-close {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.error-message { color: #b00020; }
+.success-message { color: #1b5e20; }
+
+.upload-button, .cancel-button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+.upload-button[disabled] { opacity: 0.6; cursor: not-allowed; }
+
+.cancel-button { background: transparent; color: #b00020; border-color: #f5c6cb; }
