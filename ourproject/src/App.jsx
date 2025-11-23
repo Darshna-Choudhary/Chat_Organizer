@@ -3,6 +3,7 @@ import Navbar from './components/navbar'
 import Upload from './components/upload'
 import ChatPreview from './components/ChatPreview'
 import { exportChatPDF } from './components/exportPdf'
+import './App.css'
 
 function App() {
 
@@ -15,25 +16,37 @@ function App() {
     <>
       <Navbar />
 
-      {/* Upload section */}
-      <Upload setMessages={setMessages} />
+      <div className="upload">
+        {/* Upload section */}
+        <Upload setMessages={setMessages} />
+      </div>
 
       {/* Sender input */}
-      <div style={{ padding: "20px" }}>
-        <input
-          type="text"
-          placeholder="Who are you in the chat?"
-          value={me}
-          onChange={(e) => setMe(e.target.value)}
-        />
+      <div className="sender-section">
+        <label className="sender-label">Who are you in the chat?</label>
+        <div className="sender-input-wrapper">
+          <input
+            type="text"
+            placeholder="Enter your name..."
+            value={me}
+            onChange={(e) => setMe(e.target.value)}
+            className="sender-input"
+          />
+        </div>
       </div>
 
       {/* Chat UI */}
       <ChatPreview messages={messages} me={me} />
 
       {/* PDF Export */}
-      <div style={{ padding: "20px" }}>
-        <button onClick={exportChatPDF}>Export PDF</button>
+      <div className="export-section">
+        <button 
+          className="upload-button" 
+          onClick={() => exportChatPDF(messages, me)}
+          disabled={messages.length === 0}
+        >
+          📥 Export PDF
+        </button>
       </div>
     </>
   )
