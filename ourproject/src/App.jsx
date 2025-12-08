@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Navbar from './components/navbar'
 import Upload from './components/upload'
 import ChatPreview from './components/ChatPreview'
-import { exportChatPDF } from './components/exportPdf'
+import ExportChatPDF from "./components/exportPdf.jsx";
 import './App.css'
 
 function App() {
@@ -40,13 +40,10 @@ function App() {
 
       {/* PDF Export */}
       <div className="export-section">
-        <button 
-          className="upload-button" 
-          onClick={() => exportChatPDF(messages, me)}
-          disabled={messages.length === 0}
-        >
-          📥 Export PDF
-        </button>
+        <div className="export-section">
+  <ExportChatPDF messages={messages} me={me} />
+</div>
+
       </div>
     </>
   )

@@ -13,7 +13,6 @@ const Navbar = () => {
         </div>
       <ul>
         <li><Button text={"Home"}/> </li>
-        <li><Button text={"Contact"}/> </li>
         <li><Button text={"About"}/> </li>
       </ul>
     </nav>
