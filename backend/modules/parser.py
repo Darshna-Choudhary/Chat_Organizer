@@ -32,7 +32,8 @@ def parse_chat(file_id):
                 current = {
                     "sender": sender.strip(),
                     "message": text.strip(),
-                    "timestamp": f"{date} {time}"
+                    "time": f" {time}",
+                    "date":f"{date}"
                 }
 
             else:

@@ -29,7 +29,8 @@ export default function ChatPreview({ messages, me }) {
                       <br />
                       {msg.message}
                       <div className="chat-timestamp">
-                        {msg.timestamp}
+                        {msg.time} <br/>{msg.date}
+
                       </div>
                     </div>
                   </div>
@@ -84,8 +85,8 @@ export default function ChatPreview({ messages, me }) {
                       {msg.sender}
                       <br />
                       {msg.message}
-                      <div className="chat-timestamp">
-                        {msg.timestamp}
+                      <div className="chat-timestamp2">
+                        {msg.time} <br/> {msg.date}
                       </div>
                     </div>
                   </div>

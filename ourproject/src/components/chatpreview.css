@@ -145,6 +145,7 @@
 }
 .message{ white-space:pre-wrap; }
 .chat-timestamp{ font-size:11px; color:var(--muted); margin-top:8px; }
+.chat-timestamp2{ font-size:11px; color:black ;opacity:0.5; margin-top:8px; }
 
 /* accent pill for 'me' messages to feel instagram-like */
 .chat-row.me .accent-ring{

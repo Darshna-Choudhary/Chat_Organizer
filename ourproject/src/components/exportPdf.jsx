@@ -57,7 +57,7 @@ export default function ExportChatPDF({ messages, me }) {
                 <div className={`pdf-bubble ${isMe ? "pdf-me" : "pdf-them"}`}>
                   <div className="pdf-sender">{msg.sender}</div>
                   <div className="pdf-text">{msg.message}</div>
-                  <div className="pdf-timestamp">{msg.timestamp}</div>
+                  <div className="pdf-timestamp">{msg.time}<br/> {msg.date}</div>
                 </div>
               </div>
             );

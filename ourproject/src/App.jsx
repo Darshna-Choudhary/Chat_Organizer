@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { use, useState } from 'react'
 import Navbar from './components/navbar'
 import Upload from './components/upload'
 import ChatPreview from './components/ChatPreview'
@@ -9,6 +9,8 @@ function App() {
 
   const [messages, setMessages] = useState([]);
   const [me, setMe] = useState("");
+  const [reqdate, setreqdate] = useState("");
+  const filteredmessages = reqdate ? messages.filter(msg => msg.date==reqdate):messages;
 
   console.log("Messages:", messages);
 
@@ -32,16 +34,24 @@ function App() {
             onChange={(e) => setMe(e.target.value)}
             className="sender-input"
           />
+          <label className="sender-label">date for your required chat?</label>
+          <input
+            type="text"
+            placeholder="dd/mm/yyyy"
+            value={reqdate}
+            onChange={(e) => setreqdate(e.target.value)}
+            className="sender-input"
+          />
         </div>
       </div>
-
+          
       {/* Chat UI */}
-      <ChatPreview messages={messages} me={me} />
+      <ChatPreview messages={filteredmessages} me={me} reqdate={reqdate}/>
 
       {/* PDF Export */}
       <div className="export-section">
         <div className="export-section">
-  <ExportChatPDF messages={messages} me={me} />
+  <ExportChatPDF messages={filteredmessages} me={me} reqdate={reqdate}/>
 </div>
 
       </div>
