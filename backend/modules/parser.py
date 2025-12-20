@@ -6,7 +6,7 @@ UPLOAD_FOLDER = "storage/uploads"
 PARSED_FOLDER = "storage/parsed"
 os.makedirs(PARSED_FOLDER, exist_ok=True)
 
-pattern = r"(\d{1,2}\/\d{1,2}\/\d{2,4}),?\s*(\d{1,2}:\d{2}(?:\s*[APap][mM])?)\s*-\s*(.+?):\s*(.*)"
+pattern = r"(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}),?\s*(\d{1,2}:\d{2}(?:\s*[APap][mM])?)\s*-\s*(.+?):\s*([\s\S]*)"
 
 def parse_chat(file_id):
     path = f"{UPLOAD_FOLDER}/{file_id}.txt"
@@ -19,7 +19,7 @@ def parse_chat(file_id):
 
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
-            line = line.strip()
+            line = line.rstrip("\n")
 
             match = re.match(pattern, line)
 
