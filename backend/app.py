@@ -1,98 +1,117 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import os
-import zipfile
 import uuid
+import os
 
-from modules.upload import save_uploaded_file
+from database import init_db, get_db
 from modules.parser import parse_chat
+
+UPLOAD_FOLDER = "storage/uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app = Flask(__name__)
 CORS(app)
 
+init_db()
+
 @app.route("/upload", methods=["POST"])
-def upload_route():
+def upload_file():
     if "file" not in request.files:
-        return jsonify({"error": "No file uploaded"}), 400
+        return jsonify({"error": "No file"}), 400
 
     file = request.files["file"]
-    
-    # Check if it's a ZIP file
-    if file.filename.endswith('.zip'):
-        return handle_zip_upload(file)
-    else:
-        file_id = save_uploaded_file(file)
-        return jsonify({"file_id": file_id})
+    file_id = str(uuid.uuid4())
+    file.save(f"{UPLOAD_FOLDER}/{file_id}.txt")
+
+    return jsonify({"file_id": file_id})
 
 
-def handle_zip_upload(zip_file):
-    """Handle ZIP file uploads containing multiple chat files"""
-    try:
-        # Create a temporary directory for extraction
-        temp_dir = f"storage/temp/{uuid.uuid4()}"
-        os.makedirs(temp_dir, exist_ok=True)
-        
-        # Save the ZIP file temporarily
-        zip_path = os.path.join(temp_dir, "archive.zip")
-        zip_file.save(zip_path)
-        
-        # Extract ZIP file
-        extracted_files = []
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(temp_dir)
-            
-            # Find all .txt files in the extracted contents
-            for root, dirs, files in os.walk(temp_dir):
-                for file in files:
-                    if file.endswith('.txt'):
-                        file_path = os.path.join(root, file)
-                        extracted_files.append({
-                            'name': file,
-                            'path': file_path
-                        })
-        
-        if not extracted_files:
-            return jsonify({"error": "No .txt files found in ZIP"}), 400
-        
-        # Process all extracted files
-        file_ids = []
-        for extracted_file in extracted_files:
-            file_id = str(uuid.uuid4())
-            dest_path = f"storage/uploads/{file_id}.txt"
-            
-            # Copy extracted file to uploads folder
-            with open(extracted_file['path'], 'r', encoding='utf-8', errors='ignore') as src:
-                content = src.read()
-            with open(dest_path, 'w', encoding='utf-8') as dst:
-                dst.write(content)
-            
-            file_ids.append({
-                'file_id': file_id,
-                'original_name': extracted_file['name']
-            })
-        
-        # Clean up temp directory
-        import shutil
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        
-        return jsonify({
-            "file_ids": file_ids,
-            "count": len(file_ids),
-            "is_zip": True
-        })
-    
-    except zipfile.BadZipFile:
-        return jsonify({"error": "Invalid ZIP file"}), 400
-    except Exception as e:
-        return jsonify({"error": f"Error processing ZIP: {str(e)}"}), 400
-
-
-@app.route("/parse/<file_id>", methods=["GET"])
-def parse_route(file_id):
+@app.route("/parse/<file_id>", methods=["POST"])
+def parse_file(file_id):
     result = parse_chat(file_id)
-    if "error" in result:
-        return jsonify(result), 400
     return jsonify(result)
+
+
+@app.route("/messages/<file_id>")
+def get_messages(file_id):
+    page = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 100))
+    offset = (page - 1) * limit
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT sender, message, date, time
+        FROM messages
+        WHERE file_id = ?
+        ORDER BY id ASC
+        LIMIT ? OFFSET ?
+        """, (file_id, limit, offset))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return jsonify({
+        "messages": [dict(row) for row in rows],
+        "has_more": len(rows) == limit
+    })
+
+@app.route("/jump/<file_id>")
+def jump_to_date(file_id):
+    date = request.args.get("date")
+
+    if not date:
+        return jsonify({"error": "date is required"}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT id
+        FROM messages
+        WHERE file_id = ?
+        AND date = ?
+        ORDER BY id
+        LIMIT 1
+        """,
+        (file_id, date)
+    )
+
+    row = cursor.fetchone()
+
+    if not row:
+        conn.close()
+        return jsonify({
+            "page": 1,
+            "found": False,
+            "reason": "date not found"
+        })
+
+    first_id = row["id"]
+
+    cursor.execute(
+        """
+        SELECT COUNT(*) as count
+        FROM messages
+        WHERE file_id = ?
+        AND id < ?
+        """,
+        (file_id, first_id)
+    )
+
+    count_row = cursor.fetchone()
+    conn.close()
+
+    offset = count_row["count"]
+    limit = 100
+    page = (offset // limit) + 1
+
+    return jsonify({
+        "page": page,
+        "found": True
+    })
 
 
 if __name__ == "__main__":

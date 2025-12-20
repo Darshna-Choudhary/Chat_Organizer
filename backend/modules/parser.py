@@ -1,10 +1,8 @@
 import os
 import re
-import json
+from database import get_db
 
 UPLOAD_FOLDER = "storage/uploads"
-PARSED_FOLDER = "storage/parsed"
-os.makedirs(PARSED_FOLDER, exist_ok=True)
 
 pattern = r"(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}),?\s*(\d{1,2}:\d{2}(?:\s*[APap][mM])?)\s*-\s*(.+?):\s*([\s\S]*)"
 
@@ -14,37 +12,52 @@ def parse_chat(file_id):
     if not os.path.exists(path):
         return {"error": "File not found"}
 
-    messages = []
-    current = None
+    conn = get_db()
+    cursor = conn.cursor()
 
-    with open(path, "r", encoding="utf-8") as f:
+    current = None
+    batch = []
+    BATCH_SIZE = 500
+
+    with open(path, "r", encoding="utf-8", errors="ignore") as f:
         for line in f:
             line = line.rstrip("\n")
-
             match = re.match(pattern, line)
 
             if match:
                 if current:
-                    messages.append(current)
+                    batch.append(current)
 
                 date, time, sender, text = match.groups()
+                current = (file_id, sender.strip(), text.strip(), date, time)
 
-                current = {
-                    "sender": sender.strip(),
-                    "message": text.strip(),
-                    "time": f" {time}",
-                    "date":f"{date}"
-                }
+                if len(batch) >= BATCH_SIZE:
+                    cursor.executemany(
+                        "INSERT INTO messages (file_id, sender, message, date, time) VALUES (?, ?, ?, ?, ?)",
+                        batch
+                    )
+                    conn.commit()
+                    batch.clear()
 
             else:
                 if current:
-                    current["message"] += "\n" + line.strip()
+                    current = (
+                        current[0],
+                        current[1],
+                        current[2] + "\n" + line,
+                        current[3],
+                        current[4],
+                    )
 
     if current:
-        messages.append(current)
+        batch.append(current)
 
-    parsed_path = f"{PARSED_FOLDER}/{file_id}.json"
-    with open(parsed_path, "w", encoding="utf-8") as out:
-        json.dump({"messages": messages}, out, ensure_ascii=False, indent=2)
+    if batch:
+        cursor.executemany(
+            "INSERT INTO messages (file_id, sender, message, date, time) VALUES (?, ?, ?, ?, ?)",
+            batch
+        )
+        conn.commit()
 
-    return {"messages": messages}
+    conn.close()
+    return {"status": "parsed"}
