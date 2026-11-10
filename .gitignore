@@ -11,6 +11,22 @@ storage/
 *.sqlite3
 *.log
 
+# Public-repository privacy: never track personal WhatsApp exports or media.
+*.txt
+*.zip
+storage/
+media/
+Media/
+WhatsApp Images/
+WhatsApp Video/
+WhatsApp Audio/
+WhatsApp Documents/
+WhatsApp Stickers/
+
+# Synthetic fixtures are allowed; never place real conversations here.
+!samples/
+!samples/**
+
 # Node / Frontend
 node_modules/
 dist/
