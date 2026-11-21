@@ -6,7 +6,7 @@ const URL_SPLIT = /(https?:\/\/[^\s<]*[^\s<.,;:!?)"'\]])/g;
 function nameColor(name) {
   let h = 0;
   for (const c of name) h = (h * 31 + c.charCodeAt(0)) % 360;
-  return `hsl(${h} 55% 38%)`;
+  return `hsl(${h} 55% var(--name-l, 38%))`;
 }
 
 function highlight(text, query, keyBase) {

@@ -4,9 +4,10 @@ import { buildIndex, dayStartRow, findDayIndex, fmtDate, monthLabel, msgAtRow, p
 import { DEFAULT_START_MONTH } from './config.js';
 import MessageRow from './MessageRow.jsx';
 import Heatmap from './Heatmap.jsx';
+import AppearancePanel from './AppearancePanel.jsx';
 import './reader.css';
 
-export default function Reader({ chat, settings, onSettings, onSavePosition, onReplace, onForget, banner, onDismissBanner }) {
+export default function Reader({ chat, settings, onSettings, onSavePosition, onReplace, onForget, banner, onDismissBanner, appearance, onAppearance, onResetAppearance }) {
   'use no memo'; // @tanstack/react-virtual is not compatible with the React Compiler's memoization
   const { messages, title } = chat;
   const index = useMemo(() => buildIndex(messages), [messages]);
@@ -16,6 +17,8 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
   const searchRef = useRef(null);
   const saveTimer = useRef(null);
   const flashTimer = useRef(null);
+  const topMsg = useRef(0); // first message on screen, used to keep the place when the look changes
+  const layoutKey = useRef(null);
   const armed = useRef(false); // don't save a position until the initial jump has settled
 
   const [curDate, setCurDate] = useState(null);
@@ -26,6 +29,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
   const [heatOpen, setHeatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [lookOpen, setLookOpen] = useState(false);
 
   const deferredQuery = useDeferredValue(query);
   const hits = useMemo(() => searchMessages(messages, deferredQuery), [messages, deferredQuery]);
@@ -44,6 +48,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         const first = inst.getVirtualItems().find((it) => it.end > top + 4);
         const idx = first ? msgAtRow(index, first.index) : null;
         if (idx === null) return;
+        topMsg.current = idx;
         setCurDate(messages[idx].date);
         if (armed.current) onSavePosition(idx);
       }, 300);
@@ -80,6 +85,23 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Font size, font, spacing and theme shape change row heights: re-measure and stay on the same message.
+  const key = [appearance.theme, appearance.font, appearance.fontSize, appearance.density].join('|');
+  useEffect(() => {
+    if (layoutKey.current === null) {
+      layoutKey.current = key;
+      return undefined;
+    }
+    if (layoutKey.current === key) return undefined;
+    layoutKey.current = key;
+    const raf = requestAnimationFrame(() => {
+      virtualizer.measure();
+      scrollRow(index.msgRow[topMsg.current], 'start');
+    });
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
   // Ctrl/Cmd+F searches the whole chat (the browser's own find only sees the rows on screen).
   useEffect(() => {
     const onKey = (e) => {
@@ -90,6 +112,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         setPanelOpen(false);
         setMenuOpen(false);
         setHeatOpen(false);
+        setLookOpen(false);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -156,6 +179,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         </select>
         <input className="jump" type="date" min={first || undefined} max={last || undefined} value={curDate || ''} onChange={(e) => e.target.value && goDay(findDayIndex(index, e.target.value))} aria-label="Jump to date" />
         <button className="icon" onClick={() => setHeatOpen(true)} title="Calendar" aria-label="Calendar">{'\u{1F4C5}'}</button>
+        <button className="icon" onClick={() => setLookOpen((o) => !o)} title="Appearance" aria-label="Appearance">{'\u{1F3A8}'}</button>
         <button className="icon" onClick={() => setMenuOpen((o) => !o)} title="Settings" aria-label="Settings">{'\u2699'}</button>
 
         {menuOpen && (
@@ -210,6 +234,8 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
           })}
         </div>
       </div>
+
+      {lookOpen && <AppearancePanel appearance={appearance} onChange={onAppearance} onReset={onResetAppearance} onClose={() => setLookOpen(false)} />}
 
       {heatOpen && <Heatmap index={index} onClose={() => setHeatOpen(false)} onPick={(idx) => { setHeatOpen(false); goDay(idx); }} />}
 

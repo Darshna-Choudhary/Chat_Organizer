@@ -6,6 +6,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseChat } from '../parser/parseChat.js';
 import Reader from './Reader.jsx';
+import { DEFAULT_APPEARANCE } from './themes.js';
 
 const text = readFileSync(resolve(process.cwd(), '../samples/fake-android-mdy.txt'), 'utf8');
 const { messages, report } = parseChat(text);
@@ -25,7 +26,7 @@ afterEach(cleanup);
 
 const noop = () => {};
 const renderReader = (settings = { me: 'Asha', openAt: 'start', lastMsg: null }, props = {}) =>
-  render(<Reader chat={chat} settings={settings} onSettings={noop} onSavePosition={noop} onReplace={noop} onForget={noop} banner={null} onDismissBanner={noop} {...props} />);
+  render(<Reader chat={chat} settings={settings} onSettings={noop} onSavePosition={noop} onReplace={noop} onForget={noop} banner={null} onDismissBanner={noop} appearance={DEFAULT_APPEARANCE} onAppearance={noop} onResetAppearance={noop} {...props} />);
 
 describe('Reader', () => {
   it('renders the header, date chip and messages', () => {
@@ -78,5 +79,13 @@ describe('Reader', () => {
     expect(screen.getByText(/Loaded 10 messages/)).toBeTruthy();
     fireEvent.click(screen.getByText('1 note(s)'));
     expect(screen.getByText('Example note')).toBeTruthy();
+  });
+
+  it('opens the appearance drawer and passes changes up', () => {
+    const onAppearance = vi.fn();
+    renderReader(undefined, { onAppearance });
+    fireEvent.click(screen.getByRole('button', { name: 'Appearance' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Midnight' }));
+    expect(onAppearance).toHaveBeenCalledWith({ theme: 'midnight' });
   });
 });
