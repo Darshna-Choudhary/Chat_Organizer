@@ -31,4 +31,4 @@ Turn this repository into a fully client-side WhatsApp chat reader with themes, 
 - Work in small, reviewable phases with one commit per phase.
 - At the end of every phase, run the frontend lint, tests, and production build. If the project does not yet have a test command, add appropriate tests using only synthetic `/samples` data as part of the relevant implementation phase, and state clearly what was or was not run.
 - Report the exact manual steps a person can use to try the completed phase, using a fake sample chat where applicable.
-- Before each phase's commit, verify the current branch is `feature/reader-v2`, inspect `git status` and the staged diff, and confirm no private chat or media is staged.
+- Before each phase's commit, verify the current branch is `version-1`, inspect `git status` and the staged diff, and confirm no private chat or media is staged.
