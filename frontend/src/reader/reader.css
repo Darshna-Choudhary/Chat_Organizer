@@ -138,3 +138,25 @@
   .search input { width: 120px; }
   .bar input[type=date] { max-width: 130px; }
 }
+
+/* media */
+.banner.warn { background: #fff4d6; color: #7a4b00; }
+.menu-group { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+.caption { margin-top: 4px; white-space: pre-wrap; }
+.mimg { display: block; max-width: min(320px, 100%); max-height: 360px; width: auto; height: auto; border-radius: 6px; cursor: zoom-in; }
+.mimg.sticker-img { max-width: 150px; cursor: default; }
+.mvid { display: block; max-width: min(320px, 100%); max-height: 360px; border-radius: 6px; background: #000; }
+.maudio audio { display: block; width: min(260px, 100%); margin-top: 4px; }
+.ph { min-width: 200px; min-height: 120px; display: grid; place-items: center; border-radius: 6px; background: var(--line); color: var(--muted); font-size: 13px; }
+.ph.slim { min-height: 40px; }
+.play, .doc { display: inline-flex; flex-wrap: wrap; gap: 4px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); cursor: pointer; text-align: left; max-width: 100%; overflow-wrap: anywhere; }
+.doc small, .play small, .media small { color: var(--muted); }
+.media.missing { font-style: italic; }
+.bubble.sticker { background: none !important; box-shadow: none; padding: 0; }
+.bubble.sticker::before { display: none !important; }
+.sticker .meta { background: rgba(0,0,0,.4); color: #fff; border-radius: 8px; padding: 0 6px; }
+.lightbox { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.9); color: #fff; }
+.lightbox img { display: block; width: auto; height: auto; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); object-fit: contain; }.lb-close { position: absolute; top: 12px; right: 14px; border: 0; background: none; color: #fff; font-size: 24px; cursor: pointer; }
+.lb-save { position: absolute; bottom: 14px; right: 16px; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,.18); color: #fff; text-decoration: none; }
+.start-card .alt { padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }
+.start-card .small { font-size: 12.5px; }

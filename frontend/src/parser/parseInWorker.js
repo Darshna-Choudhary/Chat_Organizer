@@ -16,6 +16,8 @@ export function parseChatInWorker(text, options = {}) {
   });
 }
 
+export const parseChatText = parseChatInWorker;
+
 export async function parseChatFile(file, options = {}) {
   const text = await file.text();
   return parseChatInWorker(text, options);

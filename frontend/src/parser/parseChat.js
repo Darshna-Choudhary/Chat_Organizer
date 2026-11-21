@@ -13,6 +13,7 @@
 //   time      "HH:MM" (24h)
 //   type      'text' | 'media' | 'deleted' | 'system'
 //   mediaFile file name when the chat names it, else null
+//   caption   text sent with a photo/video (Android exports), only present when there is one
 //
 // Guarantee: no timestamped line is dropped. report.ok is false if the line accounting does not add up.
 
@@ -32,6 +33,8 @@ const DELETED = new Set(['this message was deleted', 'you deleted this message']
 const MEDIA_OMITTED = /^(<media omitted>|(image|video|audio|sticker|gif|document|contact card|video note) omitted)$/i;
 const MEDIA_ATTACHED_IOS = /^<attached:\s*(.+?)>$/i;
 const MEDIA_ATTACHED_ANDROID = /^(.+?)\s*\(file attached\)$/i;
+// Android photo/video with a caption: first line is the file, the rest is the caption.
+const MEDIA_ATTACHED_CAPTION = /^([^\n]+?)\s*\(file attached\)\n([\s\S]+)$/i;
 
 function normalize(raw) {
   return raw
@@ -220,6 +223,12 @@ export function parseChat(rawText, options = {}) {
       } else if ((m = MEDIA_ATTACHED_IOS.exec(probe)) || (m = MEDIA_ATTACHED_ANDROID.exec(probe))) {
         msg.type = 'media';
         msg.mediaFile = m[1].trim();
+        report.media++;
+        report.mediaWithFile++;
+      } else if ((m = MEDIA_ATTACHED_CAPTION.exec(probe))) {
+        msg.type = 'media';
+        msg.mediaFile = m[1].trim();
+        msg.caption = m[2].trim();
         report.media++;
         report.mediaWithFile++;
       }

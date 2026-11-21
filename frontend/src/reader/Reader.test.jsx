@@ -88,4 +88,38 @@ describe('Reader', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Midnight' }));
     expect(onAppearance).toHaveBeenCalledWith({ theme: 'midnight' });
   });
+
+  it('adds media from the settings menu', () => {
+    const onAttach = vi.fn();
+    renderReader(undefined, { media: { store: null, status: 'none', error: null, info: null, showBanner: false, onAttach, onReconnect: noop, onDismissBanner: noop } });
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Add from a zip file' }));
+    expect(onAttach).toHaveBeenCalledWith('zip');
+  });
+
+  it('asks to reconnect remembered media and shows the match summary', () => {
+    const onReconnect = vi.fn();
+    const base = { store: null, error: null, onAttach: noop, onDismissBanner: noop };
+    renderReader(undefined, { media: { ...base, status: 'needs-permission', info: null, showBanner: false, onReconnect } });
+    fireEvent.click(screen.getByRole('button', { name: 'Reconnect' }));
+    expect(onReconnect).toHaveBeenCalled();
+    cleanup();
+    renderReader(undefined, { media: { ...base, status: 'ready', info: { referenced: 4, matched: 3, missing: ['IMG-9.jpg'] }, showBanner: true, onReconnect: noop } });
+    expect(screen.getByText(/found 3 of 4 used in this chat/)).toBeTruthy();
+    fireEvent.click(screen.getByText('1 not found'));
+    expect(screen.getByText('IMG-9.jpg')).toBeTruthy();
+  });
+
+  it('shows attached photos in the chat and opens them full screen', async () => {
+    URL.createObjectURL = vi.fn(() => 'blob:fake');
+    URL.revokeObjectURL = vi.fn();
+    const entry = { name: 'IMG-20241118-WA0003.jpg', size: 100, cheap: true };
+    const store = { get: (n) => (n === entry.name ? entry : null), has: (n) => n === entry.name, getBlob: async () => new Blob(['x']) };
+    renderReader(undefined, { media: { store, status: 'ready', error: null, info: { referenced: 1, matched: 1, missing: [] }, showBanner: false, onAttach: noop, onReconnect: noop, onDismissBanner: noop } });
+    const img = (await screen.findAllByRole('img'))[0];
+    fireEvent.click(img);
+    expect(await screen.findByRole('dialog', { name: 'Photo' })).toBeTruthy();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Photo' })).toBeNull();
+  });
 });

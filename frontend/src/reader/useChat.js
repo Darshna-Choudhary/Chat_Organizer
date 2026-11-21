@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { parseChatFile } from '../parser/parseInWorker.js';
+import { parseChatText } from '../parser/parseInWorker.js';
 import { kvDel, kvGet, kvSet } from './storage.js';
 import { DEFAULT_SETTINGS } from './config.js';
 
@@ -45,17 +45,18 @@ export function useChat() {
     };
   }, []);
 
-  const loadFile = useCallback(async (file, dateOrder = 'auto') => {
+  // src: { chatText, chatName } from media/sources.js. Returns true when the chat was opened.
+  const loadSource = useCallback(async (src, dateOrder = 'auto') => {
     setError(null);
     setStatus('parsing');
     try {
-      const { messages, report } = await parseChatFile(file, { dateOrder });
+      const { messages, report } = await parseChatText(src.chatText, { dateOrder });
       if (!messages.length) {
         setError(report.problems.join(' ') || 'No messages found in this file.');
         setStatus(chat ? 'ready' : 'empty');
-        return;
+        return false;
       }
-      const next = { id: Date.now(), title: deriveTitle(file.name, report), fileName: file.name, messages, report };
+      const next = { id: Date.now(), title: deriveTitle(src.chatName, report), fileName: src.chatName, messages, report };
       setChat(next);
       setSettings(DEFAULT_SETTINGS);
       setBanner(report);
@@ -66,9 +67,11 @@ export function useChat() {
       } catch {
         setBanner({ ...report, problems: [...report.problems, 'Could not save this chat in the browser, so it will need to be loaded again next time.'] });
       }
+      return true;
     } catch (err) {
       setError(err.message || 'Could not read this file.');
       setStatus(chat ? 'ready' : 'empty');
+      return false;
     }
   }, [chat]);
 
@@ -104,5 +107,5 @@ export function useChat() {
     setStatus('empty');
   }, []);
 
-  return { status, chat, settings, error, banner, dismissBanner: () => setBanner(null), loadFile, updateSettings, savePosition, replaceChat, forget };
+  return { status, chat, settings, error, banner, dismissBanner: () => setBanner(null), loadSource, updateSettings, savePosition, replaceChat, forget };
 }

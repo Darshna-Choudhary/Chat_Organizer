@@ -23,7 +23,7 @@ Turn this repository into a fully client-side WhatsApp chat reader with themes, 
 - The product must be a browser-only React + Vite application. Do not add or depend on a backend, Flask endpoint, upload service, or mock server for reader behavior.
 - It must work offline after the app assets are available locally. Do not add CDNs, remote fonts/assets, analytics, telemetry, APIs, or any other network calls. Keep parsing and media handling on-device.
 - Treat `/backend` as legacy/reference code for now. Do not delete it unless the user explicitly says to.
-- Keep large-chat performance in mind: the target is tens of thousands of messages. Prefer incremental rendering, virtualization, and bounded work over rendering or repeatedly processing the entire chat on every interaction.
+- Keep large-chat performance in mind: the target is tens of thousafeature/reader-v2nds of messages. Prefer incremental rendering, virtualization, and bounfeature/reader-v2ded work over rendering or repeatedly processing the entire chat on every interaction.
 - Preserve robust parsing of WhatsApp export variants, multiline messages, timestamps, system events, and media placeholders. Prefer correctness and graceful handling of malformed input over silently losing messages.
 
 ## Phase workflow

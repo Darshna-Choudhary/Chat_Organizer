@@ -1,5 +1,8 @@
-import { memo } from 'react';
+import { memo, useContext } from 'react';
 import { fmtTime } from './rows.js';
+import { MediaContext } from './MediaContext.js';
+import MediaView from './MediaView.jsx';
+import { mediaKind } from '../media/kinds.js';
 
 const URL_SPLIT = /(https?:\/\/[^\s<]*[^\s<.,;:!?)"'\]])/g;
 
@@ -31,14 +34,23 @@ function renderText(text, query) {
 }
 
 function MessageRow({ m, first, isMe, showName, query, flashed }) {
+  const { store } = useContext(MediaContext);
+  const sticker = m.type === 'media' && !!m.mediaFile && mediaKind(m.mediaFile) === 'sticker' && !!store && store.has(m.mediaFile);
   let body;
   if (m.type === 'deleted') body = <i className="muted">{'\u{1F6AB} '}{m.text || 'This message was deleted'}</i>;
-  else if (m.type === 'media') body = <span className="media">{'\u{1F4CE} '}{m.mediaFile || 'Media omitted'}</span>;
+  else if (m.type === 'media' && m.mediaFile) {
+    body = (
+      <>
+        <MediaView name={m.mediaFile} />
+        {m.caption && <div className="caption">{renderText(m.caption, query)}</div>}
+      </>
+    );
+  } else if (m.type === 'media') body = <span className="media">{'\u{1F4CE} '}Media omitted</span>;
   else body = renderText(m.text, query);
 
   return (
     <div className={`row ${isMe ? 'me' : 'them'}${first ? ' first' : ''}${flashed ? ' flash' : ''}`}>
-      <div className="bubble">
+      <div className={`bubble${sticker ? ' sticker' : ''}`}>
         {showName && <div className="name" style={{ color: nameColor(m.sender) }}>{m.sender}</div>}
         <span className="text">{body}</span>
         <span className="meta">{m.edited ? 'edited ' : ''}{m.time ? fmtTime(m.time) : ''}</span>

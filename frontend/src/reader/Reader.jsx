@@ -5,9 +5,13 @@ import { DEFAULT_START_MONTH } from './config.js';
 import MessageRow from './MessageRow.jsx';
 import Heatmap from './Heatmap.jsx';
 import AppearancePanel from './AppearancePanel.jsx';
+import Lightbox from './Lightbox.jsx';
+import { MediaContext } from './MediaContext.js';
+
+const NO_MEDIA = { store: null, status: 'none', error: null, info: null, showBanner: false, onAttach() {}, onReconnect() {}, onDismissBanner() {} };
 import './reader.css';
 
-export default function Reader({ chat, settings, onSettings, onSavePosition, onReplace, onForget, banner, onDismissBanner, appearance, onAppearance, onResetAppearance }) {
+export default function Reader({ chat, settings, onSettings, onSavePosition, onReplace, onForget, banner, onDismissBanner, appearance, onAppearance, onResetAppearance, media = NO_MEDIA }) {
   'use no memo'; // @tanstack/react-virtual is not compatible with the React Compiler's memoization
   const { messages, title } = chat;
   const index = useMemo(() => buildIndex(messages), [messages]);
@@ -30,6 +34,9 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
   const [menuOpen, setMenuOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [lookOpen, setLookOpen] = useState(false);
+  const [lightbox, setLightbox] = useState(null);
+  const [mediaNotes, setMediaNotes] = useState(false);
+  const mediaCtx = useMemo(() => ({ store: media.store, openImage: setLightbox }), [media.store]);
 
   const deferredQuery = useDeferredValue(query);
   const hits = useMemo(() => searchMessages(messages, deferredQuery), [messages, deferredQuery]);
@@ -113,6 +120,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         setMenuOpen(false);
         setHeatOpen(false);
         setLookOpen(false);
+        setLightbox(null);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -196,6 +204,11 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
                 {index.months.map((m) => <option key={m.key} value={m.key}>{monthLabel(m.key)}</option>)}
               </select>
             </label>
+            <div className="menu-group">
+              <span>Photos &amp; videos{media.info ? ` \u00B7 found ${media.info.matched} of ${media.info.referenced}` : ''}</span>
+              <button onClick={() => { setMenuOpen(false); media.onAttach('zip'); }}>Add from a zip file</button>
+              <button onClick={() => { setMenuOpen(false); media.onAttach('folder'); }}>Add from a folder</button>
+            </div>
             <button onClick={() => { setMenuOpen(false); onReplace(); }}>Open another chat</button>
             <button className="danger" onClick={() => { if (window.confirm('Delete the saved chat from this browser?')) onForget(); }}>Delete saved chat</button>
           </div>
@@ -214,7 +227,35 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         </div>
       )}
 
+      {media.status === 'needs-permission' && (
+        <div className="banner warn">
+          <span>Your photos and videos are not connected yet. <button className="link" onClick={media.onReconnect}>Reconnect</button></span>
+        </div>
+      )}
+      {media.status === 'loading' && <div className="banner warn"><span>Connecting photos and videos...</span></div>}
+      {media.status === 'error' && media.error && <div className="banner bad"><span>{media.error}</span></div>}
+      {media.showBanner && media.info && (
+        <div className={`banner${media.info.referenced && media.info.matched === media.info.referenced ? '' : ' warn'}`}>
+          <span>
+            {media.info.referenced === 0
+              ? 'This chat has no media file names to match. It was probably exported without media.'
+              : `Photos and videos: found ${media.info.matched.toLocaleString()} of ${media.info.referenced.toLocaleString()} used in this chat.`}
+            {media.info.missing.length > 0 && (
+              <button className="link" onClick={() => setMediaNotes((o) => !o)}>{mediaNotes ? 'Hide' : `${media.info.missing.length} not found`}</button>
+            )}
+          </span>
+          <button className="icon" onClick={media.onDismissBanner} aria-label="Dismiss media summary">{'\u2715'}</button>
+          {mediaNotes && (
+            <ul>
+              {media.info.missing.slice(0, 30).map((n) => <li key={n}>{n}</li>)}
+              {media.info.missing.length > 30 && <li>...and {media.info.missing.length - 30} more</li>}
+            </ul>
+          )}
+        </div>
+      )}
+
       <div className="scroller" ref={scrollerRef}>
+        <MediaContext.Provider value={mediaCtx}>
         <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
           {virtualizer.getVirtualItems().map((item) => {
             const r = index.rows[item.index];
@@ -233,9 +274,12 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
             );
           })}
         </div>
+        </MediaContext.Provider>
       </div>
 
       {lookOpen && <AppearancePanel appearance={appearance} onChange={onAppearance} onReset={onResetAppearance} onClose={() => setLookOpen(false)} />}
+
+      {lightbox && media.store && <Lightbox store={media.store} name={lightbox} onClose={() => setLightbox(null)} />}
 
       {heatOpen && <Heatmap index={index} onClose={() => setHeatOpen(false)} onPick={(idx) => { setHeatOpen(false); goDay(idx); }} />}
 

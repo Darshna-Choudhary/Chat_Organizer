@@ -166,3 +166,22 @@ describe('robustness', () => {
     expect(report.ok).toBe(true);
   });
 });
+
+describe('media captions (Android)', () => {
+  it('splits a photo and its caption', () => {
+    const t = '11/18/24, 9:25 PM - A: IMG-20241118-WA0001.jpg (file attached)\nlook at this\nsecond line\n11/18/24, 9:26 PM - B: nice';
+    const { messages, report } = parseChat(t);
+    expect(messages[0].type).toBe('media');
+    expect(messages[0].mediaFile).toBe('IMG-20241118-WA0001.jpg');
+    expect(messages[0].caption).toBe('look at this\nsecond line');
+    expect(messages[1].type).toBe('text');
+    expect(report.mediaWithFile).toBe(1);
+    expect(report.ok).toBe(true);
+  });
+
+  it('leaves a photo without a caption as before', () => {
+    const { messages } = parseChat('11/18/24, 9:25 PM - A: IMG-1.jpg (file attached)');
+    expect(messages[0].mediaFile).toBe('IMG-1.jpg');
+    expect(messages[0].caption).toBeUndefined();
+  });
+});
