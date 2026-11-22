@@ -1,17 +1,21 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { buildIndex, dayStartRow, findDayIndex, fmtDate, monthLabel, msgAtRow, pickStart, searchMessages } from './rows.js';
-import { DEFAULT_START_MONTH } from './config.js';
+import { DEFAULT_START_MONTH, DEFAULT_WELCOME } from './config.js';
 import MessageRow from './MessageRow.jsx';
 import Heatmap from './Heatmap.jsx';
 import AppearancePanel from './AppearancePanel.jsx';
 import Lightbox from './Lightbox.jsx';
+import MemoriesPanel from './MemoriesPanel.jsx';
+import { WelcomeEditor, WelcomeScreen } from './WelcomeScreen.jsx';
+import { useBookmarks } from './useBookmarks.js';
 import { MediaContext } from './MediaContext.js';
 
+const noop = () => {};
 const NO_MEDIA = { store: null, status: 'none', error: null, info: null, showBanner: false, onAttach() {}, onReconnect() {}, onDismissBanner() {} };
 import './reader.css';
 
-export default function Reader({ chat, settings, onSettings, onSavePosition, onReplace, onForget, banner, onDismissBanner, appearance, onAppearance, onResetAppearance, media = NO_MEDIA }) {
+export default function Reader({ chat, settings, onSettings, onSavePosition, onReplace, onForget, banner, onDismissBanner, appearance, onAppearance, onResetAppearance, media = NO_MEDIA, welcome = DEFAULT_WELCOME, onWelcome = noop }) {
   'use no memo'; // @tanstack/react-virtual is not compatible with the React Compiler's memoization
   const { messages, title } = chat;
   const index = useMemo(() => buildIndex(messages), [messages]);
@@ -36,6 +40,10 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
   const [lookOpen, setLookOpen] = useState(false);
   const [lightbox, setLightbox] = useState(null);
   const [mediaNotes, setMediaNotes] = useState(false);
+  const [memOpen, setMemOpen] = useState(false);
+  const [welcomeShown, setWelcomeShown] = useState(welcome.enabled);
+  const [welcomeEditing, setWelcomeEditing] = useState(false);
+  const bm = useBookmarks(chat);
   const mediaCtx = useMemo(() => ({ store: media.store, openImage: setLightbox }), [media.store]);
 
   const deferredQuery = useDeferredValue(query);
@@ -121,6 +129,8 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         setHeatOpen(false);
         setLookOpen(false);
         setLightbox(null);
+        setMemOpen(false);
+        setWelcomeEditing(false);
       }
     };
     window.addEventListener('keydown', onKey);
@@ -188,6 +198,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         <input className="jump" type="date" min={first || undefined} max={last || undefined} value={curDate || ''} onChange={(e) => e.target.value && goDay(findDayIndex(index, e.target.value))} aria-label="Jump to date" />
         <button className="icon" onClick={() => setHeatOpen(true)} title="Calendar" aria-label="Calendar">{'\u{1F4C5}'}</button>
         <button className="icon" onClick={() => setLookOpen((o) => !o)} title="Appearance" aria-label="Appearance">{'\u{1F3A8}'}</button>
+        <button className="icon" onClick={() => setMemOpen((o) => !o)} title="Memories" aria-label="Memories">{'\u2728'}</button>
         <button className="icon" onClick={() => setMenuOpen((o) => !o)} title="Settings" aria-label="Settings">{'\u2699'}</button>
 
         {menuOpen && (
@@ -209,6 +220,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
               <button onClick={() => { setMenuOpen(false); media.onAttach('zip'); }}>Add from a zip file</button>
               <button onClick={() => { setMenuOpen(false); media.onAttach('folder'); }}>Add from a folder</button>
             </div>
+            <button onClick={() => { setMenuOpen(false); setWelcomeEditing(true); }}>Welcome screen...</button>
             <button onClick={() => { setMenuOpen(false); onReplace(); }}>Open another chat</button>
             <button className="danger" onClick={() => { if (window.confirm('Delete the saved chat from this browser?')) onForget(); }}>Delete saved chat</button>
           </div>
@@ -265,7 +277,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
             else {
               const m = messages[r.idx];
               const isMe = m.sender === settings.me;
-              content = <MessageRow m={m} first={r.first} isMe={isMe} showName={index.groupChat && !isMe && r.first} query={highlightQuery} flashed={flash === r.idx} />;
+              content = <MessageRow m={m} first={r.first} isMe={isMe} showName={index.groupChat && !isMe && r.first} query={highlightQuery} flashed={flash === r.idx} bookmarked={bm.set.has(r.idx)} onBookmark={bm.toggle} />;
             }
             return (
               <div key={item.key} data-index={item.index} ref={virtualizer.measureElement} className="vrow" style={{ transform: `translateY(${item.start}px)` }}>
@@ -276,6 +288,19 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         </div>
         </MediaContext.Provider>
       </div>
+
+      {memOpen && (
+        <MemoriesPanel
+          index={index}
+          messages={messages}
+          me={settings.me}
+          saved={bm.resolved}
+          onToggleSaved={bm.toggle}
+          onJumpMessage={(idx) => { setMemOpen(false); goMessage(idx); }}
+          onJumpDay={(idx) => { setMemOpen(false); goDay(idx); }}
+          onClose={() => setMemOpen(false)}
+        />
+      )}
 
       {lookOpen && <AppearancePanel appearance={appearance} onChange={onAppearance} onReset={onResetAppearance} onClose={() => setLookOpen(false)} />}
 
@@ -293,6 +318,15 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
             </div>
           </div>
         </div>
+      )}
+
+      {welcomeEditing && <WelcomeEditor welcome={welcome} onChange={onWelcome} onPreview={() => { setWelcomeEditing(false); setWelcomeShown(true); }} onClose={() => setWelcomeEditing(false)} />}
+      {welcomeShown && (
+        <WelcomeScreen
+          welcome={welcome}
+          summary={first && last ? `${fmtDate(first)} to ${fmtDate(last)} \u00B7 ${chat.report.messages.toLocaleString()} messages` : ''}
+          onStart={() => setWelcomeShown(false)}
+        />
       )}
     </div>
   );

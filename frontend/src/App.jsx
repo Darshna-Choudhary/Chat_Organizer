@@ -1,6 +1,7 @@
 import { useChat } from './reader/useChat.js';
 import { useAppearance } from './reader/useAppearance.js';
 import { useMedia } from './reader/useMedia.js';
+import { useWelcome } from './reader/useWelcome.js';
 import { buildStyle } from './reader/themes.js';
 import Reader from './reader/Reader.jsx';
 import StartScreen from './reader/StartScreen.jsx';
@@ -9,6 +10,7 @@ export default function App() {
   const c = useChat();
   const look = useAppearance();
   const media = useMedia(c.chat);
+  const welcome = useWelcome();
   const style = buildStyle(look.appearance);
 
   async function openSource(src, order) {
@@ -20,7 +22,7 @@ export default function App() {
   }
 
   let screen;
-  if (c.status === 'loading' || !look.loaded) screen = <div className="start"><p className="muted">Loading...</p></div>;
+  if (c.status === 'loading' || !look.loaded || !welcome.loaded) screen = <div className="start"><p className="muted">Loading...</p></div>;
   else if (!c.chat) screen = <StartScreen onOpen={openSource} error={c.error} busy={c.status === 'parsing'} />;
   else {
     screen = (
@@ -37,6 +39,8 @@ export default function App() {
         appearance={look.appearance}
         onAppearance={look.change}
         onResetAppearance={look.reset}
+        welcome={welcome.welcome}
+        onWelcome={welcome.change}
         media={{ store: media.store, status: media.status, error: media.error, info: media.info, showBanner: media.showBanner, onAttach: media.attach, onReconnect: media.reconnect, onDismissBanner: media.dismissBanner }}
       />
     );

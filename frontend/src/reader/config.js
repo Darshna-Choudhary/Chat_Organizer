@@ -7,3 +7,12 @@ export const DEFAULT_SETTINGS = {
   openAt: 'last', // 'last' | 'start' | 'YYYY-MM'
   lastMsg: null, // index of the last message you were reading
 };
+
+// Optional welcome screen shown when the chat opens (edited from the settings menu).
+export const DEFAULT_WELCOME = {
+  enabled: false,
+  title: 'Our story',
+  message: '',
+  button: 'Start reading',
+  showSummary: true, // dates and message count under the title
+};

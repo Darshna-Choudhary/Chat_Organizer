@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 import { parseChat } from '../parser/parseChat.js';
 import Reader from './Reader.jsx';
 import { DEFAULT_APPEARANCE } from './themes.js';
+import { DEFAULT_WELCOME } from './config.js';
 
 const text = readFileSync(resolve(process.cwd(), '../samples/fake-android-mdy.txt'), 'utf8');
 const { messages, report } = parseChat(text);
@@ -121,5 +122,46 @@ describe('Reader', () => {
     expect(await screen.findByRole('dialog', { name: 'Photo' })).toBeTruthy();
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByRole('dialog', { name: 'Photo' })).toBeNull();
+  });
+
+  it('saves a message with the star and lists it under Saved', () => {
+    renderReader();
+    fireEvent.click(screen.getAllByRole('button', { name: 'Save message' })[0]);
+    expect(screen.getAllByRole('button', { name: 'Remove from saved' }).length).toBe(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Memories' }));
+    expect(screen.getByRole('tab', { name: 'Saved (1)' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Remove from saved' }));
+    expect(screen.queryAllByRole('button', { name: 'Remove from saved' }).length).toBe(0);
+  });
+
+  it('opens the memories drawer', () => {
+    renderReader();
+    fireEvent.click(screen.getByRole('button', { name: 'Memories' }));
+    expect(screen.getByRole('dialog', { name: 'Memories' })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'On this day' })).toBeTruthy();
+  });
+
+  it('shows the welcome screen when enabled and hides it on start', () => {
+    renderReader(undefined, { welcome: { ...DEFAULT_WELCOME, enabled: true, title: 'Happy anniversary', message: 'I love you' } });
+    expect(screen.getByRole('dialog', { name: 'Welcome' })).toBeTruthy();
+    expect(screen.getByText('I love you')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Start reading' }));
+    expect(screen.queryByRole('dialog', { name: 'Welcome' })).toBeNull();
+  });
+
+  it('does not show the welcome screen unless it is turned on', () => {
+    renderReader();
+    expect(screen.queryByRole('dialog', { name: 'Welcome' })).toBeNull();
+  });
+
+  it('edits the welcome screen from the settings menu and previews it', () => {
+    const onWelcome = vi.fn();
+    renderReader(undefined, { onWelcome });
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Welcome screen...' }));
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Happy anniversary' } });
+    expect(onWelcome).toHaveBeenCalledWith({ title: 'Happy anniversary' });
+    fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+    expect(screen.getByRole('dialog', { name: 'Welcome' })).toBeTruthy();
   });
 });

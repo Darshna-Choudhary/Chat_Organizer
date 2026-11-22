@@ -156,7 +156,64 @@
 .bubble.sticker::before { display: none !important; }
 .sticker .meta { background: rgba(0,0,0,.4); color: #fff; border-radius: 8px; padding: 0 6px; }
 .lightbox { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: rgba(0,0,0,.9); color: #fff; }
-.lightbox img { display: block; width: auto; height: auto; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); object-fit: contain; }.lb-close { position: absolute; top: 12px; right: 14px; border: 0; background: none; color: #fff; font-size: 24px; cursor: pointer; }
+.lightbox img { display: block; width: auto; height: auto; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); object-fit: contain; }
+.lb-close { position: absolute; top: 12px; right: 14px; border: 0; background: none; color: #fff; font-size: 24px; cursor: pointer; }
 .lb-save { position: absolute; bottom: 14px; right: 16px; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,.18); color: #fff; text-decoration: none; }
 .start-card .alt { padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }
 .start-card .small { font-size: 12.5px; }
+
+/* memories drawer */
+.drawer.wide { width: min(520px, 100%); }
+.tabs { display: flex; gap: 6px; margin-bottom: 4px; }
+.tabs button { flex: 1; padding: 8px 6px; border: 2px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); cursor: pointer; font-size: 13px; }
+.tabs button.on { border-color: var(--accent); }
+.tab-body { display: grid; gap: 8px; align-content: start; }
+.tab-body h3 { margin: 10px 0 0; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.day-card, .saved-go, .busy { display: grid; gap: 3px; text-align: left; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--text); cursor: pointer; }
+.day-card:hover, .saved-go:hover, .busy:hover { border-color: var(--accent); }
+.day-card small, .saved-go small { color: var(--muted); }
+.day-card .line { font-size: 13px; overflow-wrap: anywhere; }
+.day-card .line i { color: var(--muted); font-style: normal; }
+.saved-item { display: flex; gap: 6px; align-items: stretch; }
+.saved-go { flex: 1; overflow-wrap: anywhere; }
+.saved-x { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--muted); cursor: pointer; padding: 0 10px; }
+.busy { grid-template-columns: 1fr auto; align-items: center; }
+.tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.tiles div { display: grid; padding: 10px; border: 1px solid var(--line); border-radius: 10px; }
+.tiles b { font-size: 22px; }
+.tiles small { color: var(--muted); }
+.statrow { display: grid; gap: 3px; }
+.statline { display: flex; justify-content: space-between; font-size: 14px; }
+.track { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.track i, .mbar i { display: block; }
+.track i { height: 100%; }
+.track i.me, .mbar i.me { background: var(--accent); }
+.track i.other, .mbar i.other { background: var(--muted); }
+.mchart { display: flex; align-items: flex-end; gap: 4px; height: 150px; overflow-x: auto; padding-bottom: 2px; }
+.mcol { flex: 1 0 26px; display: grid; grid-template-rows: 1fr auto; height: 100%; text-align: center; }
+.mcol small { color: var(--muted); font-size: 10px; }
+.mbar { display: flex; flex-direction: column; justify-content: flex-end; min-height: 0; }
+.emojis { display: flex; flex-wrap: wrap; gap: 8px; }
+.emo { display: grid; justify-items: center; font-size: 26px; line-height: 1.1; padding: 6px 8px; border: 1px solid var(--line); border-radius: 10px; }
+.emo small { font-size: 11px; color: var(--muted); }
+.small { font-size: 12.5px; }
+
+/* save star next to a message */
+.star { align-self: flex-start; margin: 4px 6px 0; padding: 2px; border: 0; background: none; color: var(--muted); font-size: 17px; line-height: 1; cursor: pointer; opacity: 0; }
+.me .star { order: -1; }
+.row:hover .star, .star:focus-visible, .star.on { opacity: 1; }
+.star.on { color: #f5b301; }
+@media (hover: none) { .star { opacity: .4; } .star.on { opacity: 1; } }
+
+/* welcome screen */
+.welcome { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: var(--wallpaper); background-image: var(--wp-image, none); background-size: var(--wp-size, auto); background-repeat: var(--wp-repeat, repeat); background-position: var(--wp-pos, 0 0); }
+.welcome-card { width: min(560px, 100%); display: grid; gap: 16px; padding: 32px 28px; text-align: center; border-radius: 18px; background: var(--panel); color: var(--text); box-shadow: 0 10px 40px rgba(0,0,0,.2); }
+.welcome-card h1 { margin: 0; font-size: 30px; }
+.welcome-card p { margin: 0; }
+.wmsg { white-space: pre-wrap; line-height: 1.6; font-size: 17px; }
+.wstart { justify-self: center; padding: 12px 28px; border: 0; border-radius: 999px; background: var(--accent); color: #fff; font-size: 16px; cursor: pointer; }
+.check { display: flex; gap: 8px; align-items: center; margin: 8px 0; font-size: 14px; }
+.modal .field { display: grid; gap: 4px; margin: 8px 0; font-size: 13px; color: var(--muted); }
+.modal .field input, .modal .field textarea { padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); font: inherit; resize: vertical; }
+.row-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+.row-btns button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; }

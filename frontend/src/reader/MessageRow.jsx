@@ -33,7 +33,7 @@ function renderText(text, query) {
   );
 }
 
-function MessageRow({ m, first, isMe, showName, query, flashed }) {
+function MessageRow({ m, first, isMe, showName, query, flashed, bookmarked, onBookmark }) {
   const { store } = useContext(MediaContext);
   const sticker = m.type === 'media' && !!m.mediaFile && mediaKind(m.mediaFile) === 'sticker' && !!store && store.has(m.mediaFile);
   let body;
@@ -55,6 +55,11 @@ function MessageRow({ m, first, isMe, showName, query, flashed }) {
         <span className="text">{body}</span>
         <span className="meta">{m.edited ? 'edited ' : ''}{m.time ? fmtTime(m.time) : ''}</span>
       </div>
+      {onBookmark && (
+        <button className={`star${bookmarked ? ' on' : ''}`} aria-pressed={!!bookmarked} aria-label={bookmarked ? 'Remove from saved' : 'Save message'} onClick={() => onBookmark(m.id)}>
+          {bookmarked ? '\u2605' : '\u2606'}
+        </button>
+      )}
     </div>
   );
 }
