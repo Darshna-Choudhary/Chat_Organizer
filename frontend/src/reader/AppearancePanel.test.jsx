@@ -17,17 +17,25 @@ describe('AppearancePanel', () => {
     setup();
     for (const t of THEMES) expect(screen.getByRole('button', { name: t.name })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'WhatsApp Light' }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: 'Sepia Diary' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByRole('button', { name: 'Love Letters' }).getAttribute('aria-pressed')).toBe('false');
+    expect(screen.getByText('Romantic')).toBeTruthy();
+    expect(screen.getByText('Familiar')).toBeTruthy();
   });
 
   it('changes theme, wallpaper, font, size and spacing', () => {
     const { onChange } = setup();
     fireEvent.click(screen.getByRole('button', { name: 'WhatsApp Dark' }));
     expect(onChange).toHaveBeenLastCalledWith({ theme: 'whatsapp-dark' });
-    fireEvent.click(screen.getByRole('button', { name: 'Hearts wallpaper' }));
-    expect(onChange).toHaveBeenLastCalledWith({ wallpaper: { kind: 'preset', id: 'hearts' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Starry Night wallpaper' }));
+    expect(onChange).toHaveBeenLastCalledWith({ wallpaper: { kind: 'preset', id: 'starry' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Plain wallpaper' }));
+    expect(onChange).toHaveBeenLastCalledWith({ wallpaper: { kind: 'none' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Theme wallpaper' }));
+    expect(onChange).toHaveBeenLastCalledWith({ wallpaper: { kind: 'theme' } });
     fireEvent.change(screen.getByDisplayValue('Theme default'), { target: { value: 'serif' } });
     expect(onChange).toHaveBeenLastCalledWith({ font: 'serif' });
+    fireEvent.click(screen.getByRole('button', { name: 'Through the Day' }));
+    expect(onChange).toHaveBeenLastCalledWith({ theme: 'daylight' });
     fireEvent.change(screen.getByLabelText('Text size'), { target: { value: '19' } });
     expect(onChange).toHaveBeenLastCalledWith({ fontSize: 19 });
     fireEvent.click(screen.getByRole('button', { name: 'Compact' }));

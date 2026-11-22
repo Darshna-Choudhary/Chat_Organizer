@@ -145,6 +145,14 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
     goMessage(hits[next]);
   }
 
+  const overlayOpen = menuOpen || memOpen || lookOpen || (panelOpen && !!highlightQuery && hits.length > 0);
+  function closeOverlays() {
+    setMenuOpen(false);
+    setMemOpen(false);
+    setLookOpen(false);
+    setPanelOpen(false);
+  }
+
   const monthValue = curDate && index.months.some((m) => m.key === curDate.slice(0, 7)) ? curDate.slice(0, 7) : '';
   const first = messages[0]?.date;
   const last = messages[messages.length - 1]?.date;
@@ -288,6 +296,15 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         </div>
         </MediaContext.Provider>
       </div>
+
+      {overlayOpen && (
+        <div
+          className="scrim"
+          data-testid="scrim"
+          onClick={closeOverlays}
+          onWheel={(e) => scrollerRef.current?.scrollBy({ top: e.deltaY })}
+        />
+      )}
 
       {memOpen && (
         <MemoriesPanel

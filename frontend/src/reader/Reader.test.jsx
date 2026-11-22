@@ -86,8 +86,8 @@ describe('Reader', () => {
     const onAppearance = vi.fn();
     renderReader(undefined, { onAppearance });
     fireEvent.click(screen.getByRole('button', { name: 'Appearance' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Midnight' }));
-    expect(onAppearance).toHaveBeenCalledWith({ theme: 'midnight' });
+    fireEvent.click(screen.getByRole('button', { name: 'Moonlit' }));
+    expect(onAppearance).toHaveBeenCalledWith({ theme: 'moonlit' });
   });
 
   it('adds media from the settings menu', () => {
@@ -163,5 +163,42 @@ describe('Reader', () => {
     expect(onWelcome).toHaveBeenCalledWith({ title: 'Happy anniversary' });
     fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
     expect(screen.getByRole('dialog', { name: 'Welcome' })).toBeTruthy();
+  });
+
+  it('closes the settings menu when you click anywhere else', () => {
+    renderReader();
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeTruthy();
+    fireEvent.click(screen.getByTestId('scrim'));
+    expect(screen.queryByRole('dialog', { name: 'Settings' })).toBeNull();
+    expect(screen.queryByTestId('scrim')).toBeNull();
+  });
+
+  it('closes the Memories drawer when you click anywhere else', () => {
+    renderReader();
+    fireEvent.click(screen.getByRole('button', { name: 'Memories' }));
+    fireEvent.click(screen.getByTestId('scrim'));
+    expect(screen.queryByRole('dialog', { name: 'Memories' })).toBeNull();
+  });
+
+  it('closes the Appearance drawer when you click anywhere else', () => {
+    renderReader();
+    fireEvent.click(screen.getByRole('button', { name: 'Appearance' }));
+    expect(screen.getByRole('dialog', { name: 'Appearance' })).toBeTruthy();
+    fireEvent.click(screen.getByTestId('scrim'));
+    expect(screen.queryByRole('dialog', { name: 'Appearance' })).toBeNull();
+  });
+
+  it('closes the search results when you click anywhere else, and keeps the highlight', async () => {
+    renderReader();
+    await act(async () => { fireEvent.change(screen.getByLabelText('Search chat'), { target: { value: 'midnight' } }); });
+    expect(screen.getByRole('listbox')).toBeTruthy();
+    fireEvent.click(screen.getByTestId('scrim'));
+    expect(screen.queryByRole('listbox')).toBeNull();
+  });
+
+  it('has no click-away layer when nothing is open', () => {
+    renderReader();
+    expect(screen.queryByTestId('scrim')).toBeNull();
   });
 });

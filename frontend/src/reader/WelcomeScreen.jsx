@@ -1,9 +1,19 @@
 // The optional opening screen, and the editor for it.
+function Flourish() {
+  return (
+    <svg className="flourish" width="150" height="14" viewBox="0 0 150 14" aria-hidden="true">
+      <path d="M0 7h58M92 7h58" stroke="currentColor" strokeWidth="1" opacity=".5" />
+      <path d="M75 1.5l5.5 5.5L75 12.5 69.5 7z" fill="currentColor" opacity=".75" />
+    </svg>
+  );
+}
+
 export function WelcomeScreen({ welcome, summary, onStart }) {
   return (
     <div className="welcome" role="dialog" aria-label="Welcome">
       <div className="welcome-card">
         <h1>{welcome.title}</h1>
+        <Flourish />
         {welcome.showSummary && summary && <p className="muted">{summary}</p>}
         {welcome.message && <p className="wmsg">{welcome.message}</p>}
         <button className="wstart" onClick={onStart}>{welcome.button || 'Start reading'}</button>

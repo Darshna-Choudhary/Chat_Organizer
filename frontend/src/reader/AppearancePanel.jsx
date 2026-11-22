@@ -1,6 +1,51 @@
 import { useState } from 'react';
-import { FONTS, FONT_SIZE_RANGE, THEMES, WALLPAPERS, getTheme } from './themes.js';
+import { FONTS, FONT_SIZE_RANGE, THEMES, WALLPAPERS, buildStyle, getTheme, wallpaperUrl, daylightThemeId } from './themes.js';
 import { fileToWallpaper } from './wallpaper.js';
+
+const COLORS = {};
+function previewOf(id) {
+  if (!COLORS[id]) COLORS[id] = buildStyle({ theme: id }, new Date(2026, 0, 1, 12));
+  return COLORS[id];
+}
+
+function ThemeSwatch({ theme }) {
+  let bg;
+  let them;
+  let me;
+  let radius;
+  if (theme.id === 'daylight') {
+    const hours = [7, 12, 18, 22].map((h) => previewOf(daylightThemeId(new Date(2026, 0, 1, h))));
+    bg = { backgroundImage: `linear-gradient(90deg, ${hours.map((v) => v['--wallpaper']).join(', ')})` };
+    them = '#ffffff';
+    me = '#ffffff';
+    radius = '10px';
+  } else {
+    const v = previewOf(theme.id);
+    bg = { backgroundColor: v['--wp-color'], backgroundImage: v['--wp-image'] };
+    them = v['--bubble-them'];
+    me = v['--bubble-me'];
+    radius = v['--radius'];
+  }
+  return (
+    <span className="swatch" style={bg}>
+      <i style={{ background: them, borderRadius: radius }} />
+      <i style={{ background: me, borderRadius: radius }} />
+    </span>
+  );
+}
+
+function ThemeGrid({ group, appearance, onChange }) {
+  return (
+    <div className="theme-grid">
+      {THEMES.filter((t) => t.group === group).map((t) => (
+        <button key={t.id} className={`theme-card${appearance.theme === t.id ? ' on' : ''}`} title={t.blurb} aria-label={t.name} aria-pressed={appearance.theme === t.id} onClick={() => onChange({ theme: t.id })}>
+          <ThemeSwatch theme={t} />
+          <span>{t.name}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 // Side drawer, so the chat stays visible and changes show up live.
 export default function AppearancePanel({ appearance: a, onChange, onReset, onClose }) {
@@ -26,25 +71,18 @@ export default function AppearancePanel({ appearance: a, onChange, onReset, onCl
       </div>
 
       <h3>Theme</h3>
-      <div className="theme-grid">
-        {THEMES.map((t) => (
-          <button key={t.id} className={`theme-card${a.theme === t.id ? ' on' : ''}`} aria-label={t.name} aria-pressed={a.theme === t.id} onClick={() => onChange({ theme: t.id })}>
-            <span className="swatch" style={{ background: t.vars['--wallpaper'] }}>
-              <i style={{ background: t.vars['--bubble-them'] }} />
-              <i style={{ background: t.vars['--bubble-me'] }} />
-            </span>
-            <span>{t.name}</span>
-          </button>
-        ))}
-      </div>
+      <p className="hint">Romantic</p>
+      <ThemeGrid group="romantic" appearance={a} onChange={onChange} />
+      <p className="hint">Familiar</p>
+      <ThemeGrid group="familiar" appearance={a} onChange={onChange} />
 
       <h3>Bubble colors</h3>
       <div className="color-row">
         <label>Mine
-          <input type="color" aria-label="My bubble color" value={a.bubbleMe || theme.vars['--bubble-me']} onChange={(e) => onChange({ bubbleMe: e.target.value })} />
+          <input type="color" aria-label="My bubble color" value={a.bubbleMe || buildStyle({ theme: a.theme })['--bubble-me']} onChange={(e) => onChange({ bubbleMe: e.target.value })} />
         </label>
         <label>Theirs
-          <input type="color" aria-label="Their bubble color" value={a.bubbleThem || theme.vars['--bubble-them']} onChange={(e) => onChange({ bubbleThem: e.target.value })} />
+          <input type="color" aria-label="Their bubble color" value={a.bubbleThem || buildStyle({ theme: a.theme })['--bubble-them']} onChange={(e) => onChange({ bubbleThem: e.target.value })} />
         </label>
         <button onClick={() => onChange({ bubbleMe: null, bubbleThem: null })}>Use theme colors</button>
       </div>
@@ -52,11 +90,14 @@ export default function AppearancePanel({ appearance: a, onChange, onReset, onCl
       <h3>Wallpaper</h3>
       <div className="wp-grid">
         <button className={`wp${wp.kind === 'theme' ? ' on' : ''}`} aria-label="Theme wallpaper" aria-pressed={wp.kind === 'theme'} onClick={() => onChange({ wallpaper: { kind: 'theme' } })}>
-          <span className="wp-sw" style={{ background: theme.vars['--wallpaper'] }} />Plain
+          <span className="wp-sw" style={{ backgroundColor: theme.wp ? undefined : theme.vars['--wallpaper'], backgroundImage: theme.wp ? wallpaperUrl(WALLPAPERS.find((p) => p.id === theme.wp)) : 'none' }} />Theme's own
+        </button>
+        <button className={`wp${wp.kind === 'none' ? ' on' : ''}`} aria-label="Plain wallpaper" aria-pressed={wp.kind === 'none'} onClick={() => onChange({ wallpaper: { kind: 'none' } })}>
+          <span className="wp-sw" style={{ backgroundColor: theme.vars['--wallpaper'] }} />Plain
         </button>
         {WALLPAPERS.map((p) => (
           <button key={p.id} className={`wp${wp.kind === 'preset' && wp.id === p.id ? ' on' : ''}`} aria-label={`${p.name} wallpaper`} aria-pressed={wp.kind === 'preset' && wp.id === p.id} onClick={() => onChange({ wallpaper: { kind: 'preset', id: p.id } })}>
-            <span className="wp-sw" style={{ backgroundColor: theme.vars['--wallpaper'], backgroundImage: p.image, backgroundSize: p.size, backgroundRepeat: p.repeat, backgroundPosition: 'center' }} />{p.name}
+            <span className="wp-sw" style={{ backgroundColor: p.color, backgroundImage: wallpaperUrl(p) }} />{p.name}
           </button>
         ))}
         <label className={`wp${wp.kind === 'image' ? ' on' : ''}`}>

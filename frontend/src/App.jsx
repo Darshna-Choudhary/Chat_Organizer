@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import './reader/fonts.js';
 import { useChat } from './reader/useChat.js';
 import { useAppearance } from './reader/useAppearance.js';
 import { useMedia } from './reader/useMedia.js';
@@ -11,7 +13,12 @@ export default function App() {
   const look = useAppearance();
   const media = useMedia(c.chat);
   const welcome = useWelcome();
-  const style = buildStyle(look.appearance);
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 5 * 60 * 1000); // 'Through the Day' follows the hour
+    return () => clearInterval(id);
+  }, []);
+  const style = buildStyle(look.appearance, now);
 
   async function openSource(src, order) {
     if (await c.loadSource(src, order)) await media.adopt(src);
