@@ -22,7 +22,35 @@ export const FONTS = {
   mono: { name: 'Typewriter', stack: `ui-monospace, 'SFMono-Regular', Menlo, Consolas, ${EMOJI}, monospace`, scale: 1 },
 };
 
+// Floating surfaces (menus, drawers, search results, dialogs): a tint of each theme instead of plain white.
+const menu = (bg, bg2, text, muted, accent, danger, dark = false) => ({
+  '--menu-bg': bg,
+  '--menu-bg2': bg2,
+  '--menu-text': text,
+  '--menu-muted': muted,
+  '--menu-accent': accent,
+  '--danger': danger,
+  '--menu-card': dark ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.6)',
+  '--menu-line': dark ? 'rgba(255,255,255,.14)' : `color-mix(in srgb, ${text} 16%, transparent)`,
+  '--menu-shadow': dark ? '0 16px 44px rgba(0,0,0,.55)' : `0 14px 40px color-mix(in srgb, ${text} 28%, transparent)`,
+});
+
+const MENUS = {
+  'golden-hour': menu('#fdeedd', '#f9dcc3', '#4a2a1e', '#7d4f3f', '#b8502f', '#b3303f'),
+  candlelight: menu('#331d24', '#26151b', '#f4e4d6', '#c4a595', '#f0b267', '#ff8f9b', true),
+  'love-letters': menu('#f8edd4', '#eddcb5', '#3e2e1c', '#6d5538', '#8e2f2f', '#9b2a2a'),
+  moonlit: menu('#1c2556', '#141b47', '#e6e9ff', '#a9b1e0', '#9fb0ff', '#ff9aa6', true),
+  fireflies: menu('#17362f', '#102927', '#e2efe6', '#9fc0b0', '#e8d27a', '#ff9aa0', true),
+  monsoon: menu('#e8f3f2', '#d4e6e4', '#1f3b3a', '#3f6762', '#2a7a75', '#b03045'),
+  peony: menu('#fee9ef', '#fbd6e1', '#4d2433', '#85485e', '#b83a6d', '#b02a47'),
+  'lavender-dusk': menu('#f2eafc', '#e4d7f7', '#3a2c5c', '#62508a', '#6f4fb8', '#b02a55'),
+  'whatsapp-dark': menu('#1c2a32', '#16222a', '#e9edef', '#9fb0b8', '#00a884', '#ff8f9b', true),
+  classic: menu('#edf5f0', '#dcebe3', '#303030', '#5c5c5c', '#075e54', '#b3303f'),
+  imessage: menu('#f6f6fb', '#ebebf3', '#111111', '#5c5c61', '#0a6fe0', '#c0334a'),
+};
+
 const BASE = {
+  ...menu('#f3f8f6', '#e4efea', '#111b21', '#566871', '#00695a', '#c0394d'),
   '--wallpaper': '#efeae2',
   '--bar': '#008069',
   '--bar-img': 'none',
@@ -70,7 +98,7 @@ const ROMANTIC = {
 };
 
 function theme(id, name, group, blurb, font, wp, vars) {
-  return { id, name, group, blurb, font, wp, vars: { ...BASE, ...vars } };
+  return { id, name, group, blurb, font, wp, vars: { ...BASE, ...(MENUS[id] || {}), ...vars } };
 }
 
 export const THEMES = [

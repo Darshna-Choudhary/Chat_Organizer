@@ -41,6 +41,20 @@ describe('themes', () => {
     }
   });
 
+  it('keeps menus and drawers readable and tinted rather than plain white', () => {
+    for (const t of THEMES) {
+      const v = t.vars;
+      for (const bg of [v['--menu-bg'], v['--menu-bg2']]) {
+        expect(ratio(v['--menu-text'], bg), `${t.id}: menu text on ${bg}`).toBeGreaterThanOrEqual(4.5);
+        expect(ratio(v['--menu-muted'], bg), `${t.id}: menu muted on ${bg}`).toBeGreaterThanOrEqual(4.5);
+        expect(ratio(v['--menu-accent'], bg), `${t.id}: menu accent on ${bg}`).toBeGreaterThanOrEqual(3);
+        expect(ratio(v['--danger'], bg), `${t.id}: warning color on ${bg}`).toBeGreaterThanOrEqual(3.5);
+      }
+      expect(v['--menu-bg'].toLowerCase(), t.id).not.toBe('#ffffff');
+      expect(v['--menu-bg2'].toLowerCase(), t.id).not.toBe('#ffffff');
+    }
+  });
+
   it('falls back to WhatsApp Light for an unknown id, and understands themes from earlier versions', () => {
     expect(getTheme('does-not-exist').id).toBe('whatsapp-light');
     expect(getTheme('rose').id).toBe('peony');
