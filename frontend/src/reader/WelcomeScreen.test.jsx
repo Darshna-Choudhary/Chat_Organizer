@@ -39,8 +39,10 @@ describe('WelcomeEditor', () => {
     expect(onChange).toHaveBeenLastCalledWith({ title: 'Us' });
     fireEvent.change(screen.getByLabelText('Message'), { target: { value: 'hello' } });
     expect(onChange).toHaveBeenLastCalledWith({ message: 'hello' });
-    fireEvent.click(screen.getByLabelText(/Show it every time/));
+    fireEvent.click(screen.getByLabelText(/Show it when the chat opens/));
     expect(onChange).toHaveBeenLastCalledWith({ enabled: false });
+    fireEvent.click(screen.getByLabelText(/Only the first time/));
+    expect(onChange).toHaveBeenLastCalledWith({ showOnce: true });
     fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
     expect(onPreview).toHaveBeenCalled();
   });

@@ -27,7 +27,8 @@ export function WelcomeEditor({ welcome, onChange, onPreview, onClose }) {
     <div className="modal-back" onClick={onClose}>
       <div className="modal" role="dialog" aria-label="Welcome screen settings" onClick={(e) => e.stopPropagation()}>
         <div className="modal-head"><b>Welcome screen</b><button onClick={onClose} aria-label="Close welcome settings">{'\u2715'}</button></div>
-        <label className="check"><input type="checkbox" checked={welcome.enabled} onChange={(e) => onChange({ enabled: e.target.checked })} /> Show it every time the chat opens</label>
+        <label className="check"><input type="checkbox" checked={welcome.enabled} onChange={(e) => onChange({ enabled: e.target.checked })} /> Show it when the chat opens</label>
+        <label className="check"><input type="checkbox" checked={!!welcome.showOnce} onChange={(e) => onChange({ showOnce: e.target.checked })} /> Only the first time on this device</label>
         <label className="field">Title
           <input value={welcome.title} maxLength={80} onChange={(e) => onChange({ title: e.target.value })} />
         </label>

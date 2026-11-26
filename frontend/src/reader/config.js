@@ -15,4 +15,5 @@ export const DEFAULT_WELCOME = {
   message: '',
   button: 'Start reading',
   showSummary: true, // dates and message count under the title
+  showOnce: false, // only the first time on each device
 };

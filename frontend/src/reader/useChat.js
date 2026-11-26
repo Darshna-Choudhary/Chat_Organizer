@@ -46,7 +46,9 @@ export function useChat() {
   }, []);
 
   // src: { chatText, chatName } from media/sources.js. Returns true when the chat was opened.
-  const loadSource = useCallback(async (src, dateOrder = 'auto') => {
+  // opts.persist=false keeps the chat out of this browser's storage (vault mode); opts.keepSavedSettings keeps position, side, etc.
+  const loadSource = useCallback(async (src, dateOrder = 'auto', opts = {}) => {
+    const { persist = true, keepSavedSettings = false } = opts;
     setError(null);
     setStatus('parsing');
     try {
@@ -56,14 +58,24 @@ export function useChat() {
         setStatus(chat ? 'ready' : 'empty');
         return false;
       }
-      const next = { id: Date.now(), title: deriveTitle(src.chatName, report), fileName: src.chatName, messages, report };
+      const next = { id: Date.now(), title: src.title || deriveTitle(src.chatName, report), fileName: src.chatName, messages, report };
+      let nextSettings = { ...DEFAULT_SETTINGS, ...(src.settings || {}) };
+      if (keepSavedSettings) {
+        try {
+          const saved = await kvGet('settings');
+          if (saved) nextSettings = { ...nextSettings, ...saved };
+        } catch {
+          /* nothing saved yet */
+        }
+      }
+      settingsRef.current = nextSettings;
       setChat(next);
-      setSettings(DEFAULT_SETTINGS);
-      setBanner(report);
+      setSettings(nextSettings);
+      setBanner(persist ? report : null);
       setStatus('ready');
       try {
-        await kvSet('chat', next);
-        await kvSet('settings', DEFAULT_SETTINGS);
+        if (persist) await kvSet('chat', next);
+        await kvSet('settings', nextSettings);
       } catch {
         setBanner({ ...report, problems: [...report.problems, 'Could not save this chat in the browser, so it will need to be loaded again next time.'] });
       }

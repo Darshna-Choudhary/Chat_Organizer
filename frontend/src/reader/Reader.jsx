@@ -15,7 +15,7 @@ const noop = () => {};
 const NO_MEDIA = { store: null, status: 'none', error: null, info: null, showBanner: false, onAttach() {}, onReconnect() {}, onDismissBanner() {} };
 import './reader.css';
 
-export default function Reader({ chat, settings, onSettings, onSavePosition, onReplace, onForget, banner, onDismissBanner, appearance, onAppearance, onResetAppearance, media = NO_MEDIA, welcome = DEFAULT_WELCOME, onWelcome = noop }) {
+export default function Reader({ chat, settings, onSettings, onSavePosition, onReplace, onForget, banner, onDismissBanner, appearance, onAppearance, onResetAppearance, media = NO_MEDIA, welcome = DEFAULT_WELCOME, onWelcome = noop, openWithWelcome, onWelcomeStart = noop, vault = null }) {
   'use no memo'; // @tanstack/react-virtual is not compatible with the React Compiler's memoization
   const { messages, title } = chat;
   const index = useMemo(() => buildIndex(messages), [messages]);
@@ -41,7 +41,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
   const [lightbox, setLightbox] = useState(null);
   const [mediaNotes, setMediaNotes] = useState(false);
   const [memOpen, setMemOpen] = useState(false);
-  const [welcomeShown, setWelcomeShown] = useState(welcome.enabled);
+  const [welcomeShown, setWelcomeShown] = useState(openWithWelcome ?? welcome.enabled);
   const [welcomeEditing, setWelcomeEditing] = useState(false);
   const bm = useBookmarks(chat);
   const mediaCtx = useMemo(() => ({ store: media.store, openImage: setLightbox }), [media.store]);
@@ -223,14 +223,22 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
                 {index.months.map((m) => <option key={m.key} value={m.key}>{monthLabel(m.key)}</option>)}
               </select>
             </label>
-            <div className="menu-group">
-              <span>Photos &amp; videos{media.info ? ` \u00B7 found ${media.info.matched} of ${media.info.referenced}` : ''}</span>
-              <button onClick={() => { setMenuOpen(false); media.onAttach('zip'); }}>Add from a zip file</button>
-              <button onClick={() => { setMenuOpen(false); media.onAttach('folder'); }}>Add from a folder</button>
-            </div>
+            {!vault && (
+              <div className="menu-group">
+                <span>Photos &amp; videos{media.info ? ` \u00B7 found ${media.info.matched} of ${media.info.referenced}` : ''}</span>
+                <button onClick={() => { setMenuOpen(false); media.onAttach('zip'); }}>Add from a zip file</button>
+                <button onClick={() => { setMenuOpen(false); media.onAttach('folder'); }}>Add from a folder</button>
+              </div>
+            )}
             <button onClick={() => { setMenuOpen(false); setWelcomeEditing(true); }}>Welcome screen...</button>
-            <button onClick={() => { setMenuOpen(false); onReplace(); }}>Open another chat</button>
-            <button className="danger" onClick={() => { if (window.confirm('Delete the saved chat from this browser?')) onForget(); }}>Delete saved chat</button>
+            {vault ? (
+              <button onClick={() => { setMenuOpen(false); vault.onLock(); }}>Lock this device</button>
+            ) : (
+              <>
+                <button onClick={() => { setMenuOpen(false); onReplace(); }}>Open another chat</button>
+                <button className="danger" onClick={() => { if (window.confirm('Delete the saved chat from this browser?')) onForget(); }}>Delete saved chat</button>
+              </>
+            )}
           </div>
         )}
       </header>
@@ -342,7 +350,7 @@ export default function Reader({ chat, settings, onSettings, onSavePosition, onR
         <WelcomeScreen
           welcome={welcome}
           summary={first && last ? `${fmtDate(first)} to ${fmtDate(last)} \u00B7 ${chat.report.messages.toLocaleString()} messages` : ''}
-          onStart={() => setWelcomeShown(false)}
+          onStart={() => { setWelcomeShown(false); onWelcomeStart(); }}
         />
       )}
     </div>

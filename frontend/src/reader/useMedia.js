@@ -55,6 +55,12 @@ export function useMedia(chat) {
     install(src.entries || [], { record: src.handleRecord || null, persist: true, banner: true });
   }, [install]);
 
+  // Media served from an encrypted vault: nothing to remember, nothing to pick.
+  const attachEntries = useCallback((entries) => {
+    adopted.current = true;
+    install(entries, { banner: false });
+  }, [install]);
+
   const attach = useCallback(async (kind) => {
     try {
       const picked = await (kind === 'zip' ? pickZip() : pickDirectory());
@@ -89,5 +95,5 @@ export function useMedia(chat) {
 
   const info = useMemo(() => (store && chat ? matchMedia(chat.messages, store) : null), [store, chat]);
 
-  return { store, status, error, info, showBanner, dismissBanner: () => setShowBanner(false), adopt, attach, reconnect, clear };
+  return { store, status, error, info, showBanner, dismissBanner: () => setShowBanner(false), adopt, attachEntries, attach, reconnect, clear };
 }
